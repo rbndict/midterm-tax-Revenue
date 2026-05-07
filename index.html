@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title> TAX RevenueHub</title>
+>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --accent2: #1d4ed8;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --sidebar-w: 260px;
+            --glass: rgba(255,255,255,0.85);
+            --border: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --primary: #020617;
+            --accent: #3b82f6;
+            --accent2: #2563eb;
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --glass: rgba(15,23,42,0.9);
+            --border: #334155;
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            transition:
+                background-color .25s ease,
+                border-color .25s ease,
+                color .25s ease,
+                transform .25s ease,
+                box-shadow .25s ease;
+        }
+
+        html{
+            scroll-behavior:smooth;
+        }
+
+        body{
+            font-family:'Inter',sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(37,99,235,.08), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(37,99,235,.08), transparent 30%),
+                var(--bg-body);
+
+            color:var(--text-main);
+            overflow-x:hidden;
+        }
+
+        .header{
+            position:fixed;
+            top:0;
+            left:0;
+            right:0;
+            height:70px;
+
+            background:var(--glass);
+            backdrop-filter:blur(15px);
+
+            border-bottom:1px solid var(--border);
+
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+
+            padding:0 24px;
+
+            z-index:1100;
+
+            box-shadow:0 5px 20px rgba(0,0,0,.05);
+        }
+
+        .brand-title{
+            font-weight:800;
+            letter-spacing:-0.5px;
+        }
+
+        .theme-toggle{
+            border:none;
+            width:42px;
+            height:42px;
+            border-radius:50%;
+            background:var(--bg-card);
+            color:var(--text-main);
+            box-shadow:0 5px 15px rgba(0,0,0,.08);
+        }
+
+        .sidebar{
+            position:fixed;
+            top:70px;
+            left:0;
+
+            width:var(--sidebar-w);
+            height:calc(100vh - 70px);
+
+            background:var(--glass);
+            backdrop-filter:blur(20px);
+
+            border-right:1px solid var(--border);
+
+            padding:20px;
+
+            z-index:1050;
+
+            transition:transform .35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.collapsed{
+            transform:translateX(-100%);
+        }
+
+        .nav-link{
+            display:flex;
+            align-items:center;
+            gap:12px;
+
+            padding:14px 16px;
+
+            color:var(--text-muted);
+
+            border-radius:16px;
+
+            margin-bottom:10px;
+
+            font-weight:600;
+
+            position:relative;
+            overflow:hidden;
+
+            text-decoration:none;
+        }
+
+        .nav-link::before{
+            content:"";
+            position:absolute;
+            inset:0;
+
+            background:linear-gradient(
+                90deg,
+                rgba(255,255,255,.1),
+                transparent
+            );
+
+            transform:translateX(-100%);
+        }
+
+        .nav-link:hover::before{
+            transform:translateX(100%);
+            transition:.6s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active{
+            background:linear-gradient(
+                135deg,
+                var(--accent),
+                var(--accent2)
+            );
+
+            color:white !important;
+
+            box-shadow:0 10px 25px rgba(37,99,235,.25);
+        }
+
+        .main-content{
+            margin-left:var(--sidebar-w);
+            padding:100px 30px 40px;
+            transition:margin .3s ease;
+        }
+
+        .main-content.expanded{
+            margin-left:0;
+        }
+
+        .hero-banner{
+            background:linear-gradient(
+                135deg,
+                #2563eb,
+                #1d4ed8
+            );
+
+            color:white;
+
+            border-radius:28px;
+
+            padding:45px;
+
+            margin-bottom:30px;
+
+            position:relative;
+            overflow:hidden;
+
+            box-shadow:0 15px 40px rgba(37,99,235,.25);
+        }
+
+        .hero-banner::before{
+            content:"";
+            position:absolute;
+
+            width:380px;
+            height:380px;
+
+            background:rgba(255,255,255,.08);
+
+            border-radius:50%;
+
+            top:-120px;
+            right:-100px;
+        }
+
+        .hero-banner h1{
+            font-weight:800;
+            font-size:3rem;
+            position:relative;
+            z-index:2;
+        }
+
+        .hero-banner p{
+            position:relative;
+            z-index:2;
+        }
+
+        .card-stat{
+            background:var(--bg-card);
+
+            border:1px solid var(--border);
+
+            border-radius:24px;
+
+            padding:24px;
+
+            position:relative;
+            overflow:hidden;
+
+            height:100%;
+
+            box-shadow:0 10px 25px rgba(0,0,0,.04);
+        }
+
+        .card-stat::after{
+            content:"";
+
+            position:absolute;
+
+            width:120px;
+            height:120px;
+
+            background:rgba(37,99,235,.05);
+
+            border-radius:50%;
+
+            top:-30px;
+            right:-30px;
+        }
+
+        .card-stat:hover{
+            transform:translateY(-6px);
+            box-shadow:0 20px 35px rgba(37,99,235,.12);
+        }
+
+        .stat-number{
+            font-size:2rem;
+            font-weight:800;
+        }
+
+        .section-title{
+            font-weight:800;
+            margin-bottom:20px;
+        }
+
+        #map{
+            height:650px;
+            border-radius:24px;
+            overflow:hidden;
+            border:1px solid var(--border);
+        }
+
+        .region-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:18px;
+            margin-top:25px;
+        }
+
+        .region-box{
+            background:var(--bg-card);
+            border:1px solid var(--border);
+            border-radius:20px;
+            padding:22px;
+            position:relative;
+            overflow:hidden;
+        }
+
+        .region-box::before{
+            content:"";
+            position:absolute;
+
+            width:70px;
+            height:70px;
+
+            background:rgba(37,99,235,.07);
+
+            border-radius:50%;
+
+            top:-15px;
+            right:-15px;
+        }
+
+        .region-box h3{
+            font-weight:800;
+        }
+
+        .global-table{
+            border-radius:24px;
+            overflow:hidden;
+        }
+
+        .global-table table{
+            margin:0;
+        }
+
+        .global-table th{
+            background:#2563eb !important;
+            color:white;
+            padding:18px;
+            border:none;
+        }
+
+        .global-table td{
+            padding:18px;
+            vertical-align:middle;
+        }
+
+        .global-table tbody tr:hover{
+            background:rgba(37,99,235,.05);
+        }
+
+        .leaflet-popup-content-wrapper{
+            border-radius:18px;
+        }
+
+        .map-popup h5{
+            font-weight:800;
+            margin-bottom:12px;
+        }
+
+        .metric{
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:8px;
+        }
+
+        .metric span:first-child{
+            color:#64748b;
+        }
+
+        .pulse-dot{
+            width:10px;
+            height:10px;
+            background:#22c55e;
+            border-radius:50%;
+            display:inline-block;
+            animation:pulse 1.5s infinite;
+        }
+
+        @keyframes pulse{
+            0%{
+                transform:scale(1);
+                opacity:1;
+            }
+            70%{
+                transform:scale(2);
+                opacity:0;
+            }
+            100%{
+                opacity:0;
+            }
+        }
+
+        .fade-up{
+            animation:fadeUp .8s ease;
+        }
+
+        @keyframes fadeUp{
+            from{
+                opacity:0;
+                transform:translateY(20px);
+            }
+            to{
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
+        .float-animation{
+            animation:floaty 5s ease-in-out infinite;
+        }
+
+        @keyframes floaty{
+            0%{
+                transform:translateY(0);
+            }
+            50%{
+                transform:translateY(-8px);
+            }
+            100%{
+                transform:translateY(0);
+            }
+        }
+
+        @media(max-width:768px){
+
+            .sidebar{
+                transform:translateX(-100%);
+            }
+
+            .sidebar.show{
+                transform:translateX(0);
+            }
+
+            .main-content{
+                margin-left:0;
+                padding:95px 18px 30px;
+            }
+
+            .hero-banner{
+                padding:30px;
+            }
+
+            .hero-banner h1{
+                font-size:2rem;
+            }
+
+            #map{
+                height:500px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+
+    <header class="header">
+
+        <div class="d-flex align-items-center">
+
+            <button
+                class="btn btn-link text-decoration-none me-3"
+                onclick="app.toggleSidebar()"
+            >
+                <i class="bi bi-list fs-4"></i>
+            </button>
+
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/9/99/Flag_of_the_Philippines.svg"
+                width="35"
+                class="rounded-1 me-2"
+            >
+
+            <div>
+                <div class="brand-title">
+                    RevenueHub PH
+                </div>
+
+                <small class="opacity-75">
+                    National Revenue Monitoring
+                </small>
+            </div>
+
+        </div>
+
+        <button
+            class="theme-toggle"
+            onclick="app.toggleTheme()"
+            id="themeBtn"
+        >
+            <i class="bi bi-moon-stars-fill"></i>
+        </button>
+
+    </header>
+
+    <!-- SIDEBAR -->
+
+    <nav class="sidebar" id="sidebar">
+
+        <small class="text-uppercase fw-bold text-muted mb-3 d-block">
+            Main Menu
+        </small>
+
+        <a href="#" class="nav-link active" data-section="dashboard">
+            <i class="bi bi-speedometer2"></i>
+            Dashboard
+        </a>
+
+        <a href="#" class="nav-link" data-section="regional">
+            <i class="bi bi-map"></i>
+            Regional Analysis
+        </a>
+
+        <a href="#" class="nav-link" data-section="global">
+            <i class="bi bi-globe2"></i>
+            Global Comparison
+        </a>
+
+    </nav>
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content" id="main">
+
+        <!-- DASHBOARD -->
+
+        <section id="dashboard" class="content-section fade-up">
+
+            <div class="hero-banner float-animation">
+
+                <div class="d-flex align-items-center mb-3">
+                    <span class="pulse-dot me-2"></span>
+
+                    <small class="fw-semibold">
+                        LIVE NATIONAL ECONOMIC MONITOR
+                    </small>
+                </div>
+
+                <h1>
+                    National Revenue Tracker
+                </h1>
+
+                <p class="lead opacity-75">
+                    Monitoring Bureau of Internal Revenue performance,
+                    population growth, and regional economic activity.
+                </p>
+
+            </div>
+
+            <div class="row g-4 mb-4">
+
+                <div class="col-md-3">
+
+                    <div class="card-stat">
+
+                        <small class="text-muted fw-bold">
+                            TOTAL POPULATION
+                        </small>
+
+                        <div class="stat-number mt-2" id="pop">
+                            ---
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card-stat">
+
+                        <small class="text-muted fw-bold">
+                            GDP GROWTH RATE
+                        </small>
+
+                        <div class="stat-number text-success mt-2">
+                            5.6%
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card-stat">
+
+                        <small class="text-muted fw-bold">
+                            INFLATION RATE
+                        </small>
+
+                        <div class="stat-number text-danger mt-2">
+                            3.3%
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <div class="card-stat">
+
+                        <small class="text-muted fw-bold">
+                            REVENUE TARGET
+                        </small>
+
+                        <div class="stat-number text-primary mt-2">
+                            ₱3.05T
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="card-stat">
+
+                <h4 class="section-title">
+                    Quarterly Revenue Performance
+                </h4>
+
+                <canvas id="chart" height="100"></canvas>
+
+            </div>
+
+        </section>
+
+        <!-- REGIONAL -->
+
+        <section id="regional" class="content-section d-none fade-up">
+
+            <div class="card-stat">
+
+                <h4 class="section-title">
+                    Philippine Regional Revenue Distribution
+                </h4>
+
+                <div id="map"></div>
+
+            </div>
+
+            <div class="region-grid">
+
+                <div class="region-box">
+
+                    <small class="text-muted fw-bold">
+                        TOP TAXPAYER REGION
+                    </small>
+
+                    <h3 class="text-primary mt-2">
+                        NCR
+                    </h3>
+
+                    <small class="text-muted">
+                        Highest national revenue contribution
+                    </small>
+
+                </div>
+
+                <div class="region-box">
+
+                    <small class="text-muted fw-bold">
+                        REGISTERED TAXPAYERS
+                    </small>
+
+                    <h3 class="mt-2" id="taxPayers">
+                        ---
+                    </h3>
+
+                    <small class="text-muted">
+                        Active nationwide BIR accounts
+                    </small>
+
+                </div>
+
+                <div class="region-box">
+
+                    <small class="text-muted fw-bold">
+                        DIGITAL FILING RATE
+                    </small>
+
+                    <h3 class="text-success mt-2">
+                        82%
+                    </h3>
+
+                    <small class="text-muted">
+                        Electronic tax filing adoption
+                    </small>
+
+                </div>
+
+                <div class="region-box">
+
+                    <small class="text-muted fw-bold">
+                        REVENUE GROWTH
+                    </small>
+
+                    <h3 class="text-warning mt-2">
+                        +7.3%
+                    </h3>
+
+                    <small class="text-muted">
+                        Annual increase compared to last year
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section id="global" class="content-section d-none fade-up">
+
+            <div class="hero-banner mb-4">
+
+                <div class="d-flex align-items-center mb-3">
+                    <span class="pulse-dot me-2"></span>
+
+                    <small class="fw-semibold">
+                        GLOBAL ECONOMIC COMPARISON
+                    </small>
+                </div>
+
+                <h1>
+                    Worldwide Revenue Analysis
+                </h1>
+
+                <p class="lead opacity-75">
+                    Comparing Philippine economic performance against
+                    other Asian economies.
+                </p>
+
+            </div>
+
+            <div class="card-stat global-table">
+
+                <h4 class="section-title">
+                    Revenue Performance Comparison
+                </h4>
+
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+
+                            <tr>
+                                <th>Country</th>
+                                <th>Population</th>
+                                <th>GDP Growth</th>
+                                <th>Tax Revenue Ratio</th>
+                                <th>Digital Filing</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="globalTableBody">
+
+                            <tr>
+                                <td>Loading...</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+
+        const app = {
+
+            map: null,
+            chartInstance: null,
+
+            init() {
+
+                this.loadTheme();
+
+                this.bindNavigation();
+
+                this.fetchData();
+
+                this.initChart();
+
+                this.handleResize();
+
+                this.animateCards();
+
+            },
+
+            animateCards() {
+
+                document.querySelectorAll('.card-stat').forEach((card, index) => {
+
+                    card.style.opacity = "0";
+                    card.style.transform = "translateY(20px)";
+
+                    setTimeout(() => {
+
+                        card.style.opacity = "1";
+                        card.style.transform = "translateY(0)";
+
+                    }, index * 150);
+
+                });
+
+            },
+
+            toggleTheme() {
+
+                const isDark =
+                    document.documentElement.getAttribute('data-theme') === 'dark';
+
+                const newTheme = isDark ? 'light' : 'dark';
+
+                document.documentElement.setAttribute('data-theme', newTheme);
+
+                localStorage.setItem('theme', newTheme);
+
+                this.updateThemeUI(newTheme);
+
+            },
+
+            updateThemeUI(theme) {
+
+                const btn = document.getElementById('themeBtn');
+
+                btn.innerHTML =
+                    theme === 'dark'
+                        ? '<i class="bi bi-sun-fill"></i>'
+                        : '<i class="bi bi-moon-stars-fill"></i>';
+
+                if(this.chartInstance){
+
+                    this.chartInstance.options.scales.x.grid.color =
+                        theme === 'dark'
+                            ? '#334155'
+                            : '#e2e8f0';
+
+                    this.chartInstance.update();
+
+                }
+
+            },
+
+            loadTheme() {
+
+                const saved =
+                    localStorage.getItem('theme') || 'light';
+
+                document.documentElement.setAttribute('data-theme', saved);
+
+                this.updateThemeUI(saved);
+
+            },
+
+            toggleSidebar() {
+
+                document.getElementById('sidebar')
+                    .classList.toggle('collapsed');
+
+                document.getElementById('main')
+                    .classList.toggle('expanded');
+
+                setTimeout(() => {
+
+                    if(this.map)
+                        this.map.invalidateSize();
+
+                }, 400);
+
+            },
+
+            bindNavigation() {
+
+                document.querySelectorAll('.nav-link')
+                    .forEach(link => {
+
+                    link.addEventListener('click', (e) => {
+
+                        e.preventDefault();
+
+                        const target = link.dataset.section;
+
+                        document.querySelectorAll('.nav-link')
+                            .forEach(l => l.classList.remove('active'));
+
+                        link.classList.add('active');
+
+                        document.querySelectorAll('.content-section')
+                            .forEach(s => s.classList.add('d-none'));
+
+                        document.getElementById(target)
+                            .classList.remove('d-none');
+
+                        if(target === 'regional')
+                            this.initMap();
+
+                    });
+
+                });
+
+            },
+
+            async fetchData() {
+
+                try {
+
+                    const response = await fetch(
+                        'https://api.worldbank.org/v2/country/PHL/indicator/SP.POP.TOTL?format=json'
+                    );
+
+                    const data = await response.json();
+
+                    const latestPop =
+                        data[1].find(item => item.value !== null).value;
+
+                    document.getElementById('pop').innerText =
+                        (latestPop / 1000000).toFixed(1) + "M";
+
+                    document.getElementById('taxPayers').innerText =
+                        (latestPop * 0.28 / 1000000).toFixed(1) + "M";
+
+                    document.getElementById('globalTableBody').innerHTML = `
+
+                        <tr>
+                            <td><strong>Philippines</strong></td>
+                            <td>${(latestPop / 1000000).toFixed(1)}M</td>
+                            <td class="text-success fw-bold">5.6%</td>
+                            <td>14.2%</td>
+                            <td>82%</td>
+                        </tr>
+
+                        <tr>
+                            <td>Singapore</td>
+                            <td>5.9M</td>
+                            <td>3.2%</td>
+                            <td>13.5%</td>
+                            <td>96%</td>
+                        </tr>
+
+                        <tr>
+                            <td>Japan</td>
+                            <td>124M</td>
+                            <td>1.1%</td>
+                            <td>19.8%</td>
+                            <td>91%</td>
+                        </tr>
+
+                        <tr>
+                            <td>South Korea</td>
+                            <td>51M</td>
+                            <td>2.4%</td>
+                            <td>20.1%</td>
+                            <td>95%</td>
+                        </tr>
+
+                        <tr>
+                            <td>Indonesia</td>
+                            <td>277M</td>
+                            <td>5.0%</td>
+                            <td>12.1%</td>
+                            <td>76%</td>
+                        </tr>
+
+                    `;
+
+                }
+
+                catch(err){
+
+                    document.getElementById('pop').innerText = "115.6M";
+
+                }
+
+            },
+
+            initChart() {
+
+                const ctx =
+                    document.getElementById('chart').getContext('2d');
+
+                this.chartInstance = new Chart(ctx, {
+
+                    type: 'line',
+
+                    data: {
+
+                        labels: ['Q1','Q2','Q3','Q4'],
+
+                        datasets: [
+
+                            {
+                                label:'Actual Revenue',
+                                data:[0.75,0.88,0.82,0.91],
+                                borderColor:'#2563eb',
+                                backgroundColor:'rgba(37,99,235,.12)',
+                                fill:true,
+                                tension:.4,
+                                pointRadius:5,
+                                pointHoverRadius:7
+                            },
+
+                            {
+                                label:'Revenue Target',
+                                data:[0.80,0.85,0.85,0.95],
+                                borderColor:'#94a3b8',
+                                borderDash:[5,5],
+                                fill:false,
+                                tension:.4
+                            }
+
+                        ]
+
+                    },
+
+                    options: {
+
+                        responsive:true,
+
+                        interaction:{
+                            intersect:false,
+                            mode:'index'
+                        },
+
+                        animation:{
+                            duration:2000,
+                            easing:'easeOutQuart'
+                        },
+
+                        plugins:{
+
+                            legend:{
+                                position:'bottom',
+                                labels:{
+                                    usePointStyle:true,
+                                    padding:20
+                                }
+                            },
+
+                            tooltip:{
+                                backgroundColor:'#0f172a',
+                                padding:14,
+                                borderColor:'#2563eb',
+                                borderWidth:1
+                            }
+
+                        },
+
+                        scales:{
+
+                            y:{
+                                beginAtZero:false,
+                                grid:{
+                                    display:false
+                                }
+                            },
+
+                            x:{
+                                grid:{
+                                    color:'#e2e8f0'
+                                }
+                            }
+
+                        }
+
+                    }
+
+                });
+
+            },
+
+            initMap() {
+
+                if(this.map) return;
+
+                this.map = L.map('map', {
+                    zoomControl:false
+                }).setView([12.8797,121.7740],6);
+
+                L.control.zoom({
+                    position:'bottomright'
+                }).addTo(this.map);
+
+                const isDark =
+                    document.documentElement.getAttribute('data-theme') === 'dark';
+
+                const style = isDark
+                    ? 'dark_all'
+                    : 'light_all';
+
+                L.tileLayer(
+                    `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`,
+                    {
+                        attribution:'&copy; CartoDB'
+                    }
+                ).addTo(this.map);
+
+                const regionStats = {
+
+                    "National Capital Region (NCR)": {
+                        revenue:"₱1.12T",
+                        taxpayers:"4.6M",
+                        growth:"+9.2%",
+                        color:"#1d4ed8"
+                    },
+
+                    "Region IV-A (CALABARZON)": {
+                        revenue:"₱610B",
+                        taxpayers:"2.8M",
+                        growth:"+7.4%",
+                        color:"#2563eb"
+                    },
+
+                    "Region III (Central Luzon)": {
+                        revenue:"₱520B",
+                        taxpayers:"2.1M",
+                        growth:"+6.8%",
+                        color:"#3b82f6"
+                    },
+
+                    "Region VII (Central Visayas)": {
+                        revenue:"₱320B",
+                        taxpayers:"1.4M",
+                        growth:"+5.2%",
+                        color:"#60a5fa"
+                    },
+
+                    "Region XI (Davao Region)": {
+                        revenue:"₱280B",
+                        taxpayers:"1.1M",
+                        growth:"+5.7%",
+                        color:"#93c5fd"
+                    }
+
+                };
+
+                fetch(
+                    'https://raw.githubusercontent.com/faeldon/philippines-json-maps/master/2023/geojson/regions.json'
+                )
+
+                .then(r => r.json())
+
+                .then(data => {
+
+                    L.geoJSON(data, {
+
+                        style: feature => {
+
+                            const regionName =
+                                feature.properties.regname;
+
+                            const region =
+                                regionStats[regionName];
+
+                            return {
+
+                                color:'#ffffff',
+                                weight:1.2,
+                                fillOpacity:.75,
+
+                                fillColor:
+                                    region
+                                        ? region.color
+                                        : '#94a3b8'
+
+                            };
+
+                        },
+
+                        onEachFeature:(feature, layer) => {
+
+                            const regionName =
+                                feature.properties.regname;
+
+                            const info =
+                                regionStats[regionName] || {
+
+                                revenue:"₱180B",
+                                taxpayers:"850K",
+                                growth:"+4.1%",
+                                color:"#64748b"
+
+                            };
+
+                            layer.bindPopup(`
+
+                                <div class="map-popup">
+
+                                    <h5>${regionName}</h5>
+
+                                    <div class="metric">
+                                        <span>Revenue</span>
+                                        <strong>${info.revenue}</strong>
+                                    </div>
+
+                                    <div class="metric">
+                                        <span>Taxpayers</span>
+                                        <strong>${info.taxpayers}</strong>
+                                    </div>
+
+                                    <div class="metric">
+                                        <span>Growth</span>
+
+                                        <strong class="text-success">
+                                            ${info.growth}
+                                        </strong>
+                                    </div>
+
+                                </div>
+
+                            `);
+
+                            layer.on({
+
+                                mouseover:e => {
+
+                                    e.target.setStyle({
+                                        fillOpacity:1,
+                                        weight:2
+                                    });
+
+                                },
+
+                                mouseout:e => {
+
+                                    e.target.setStyle({
+                                        fillOpacity:.75,
+                                        weight:1.2
+                                    });
+
+                                }
+
+                            });
+
+                        }
+
+                    }).addTo(this.map);
+
+                });
+
+            },
+
+            handleResize() {
+
+                window.addEventListener('resize', () => {
+
+                    if(window.innerWidth < 768){
+
+                        document.getElementById('sidebar')
+                            .classList.add('collapsed');
+
+                        document.getElementById('main')
+                            .classList.add('expanded');
+
+                    }
+
+                });
+
+            }
+
+        };
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            () => app.init()
+        );
+
+    </script>
+
+</body>
+</html>
